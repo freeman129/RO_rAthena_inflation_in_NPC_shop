@@ -1503,7 +1503,7 @@ int itemdb_inflation_update(unsigned short* item_list, int n, int buyorsell)
 
 			id->value_sell = id->value_buy / 2;
 
-			printf("Item_id:%d's price change to %f(value_buy).\n",nameid,id->value_buy);
+			//printf("Item_id:%d's price change to %f(value_buy).\n",nameid,id->value_buy);
 		}
 	}
 	else
@@ -1526,7 +1526,7 @@ int itemdb_inflation_update(unsigned short* item_list, int n, int buyorsell)
 
 			id->value_sell = id->value_buy / 2;
 
-			printf("Item_id:%d's price change to %f(value_buy).\n",nameid,id->value_buy);
+			//printf("Item_id:%d's price change to %f(value_buy).\n",nameid,id->value_buy);
 		}
 	}
 	return 0;
@@ -1612,7 +1612,7 @@ void itemdb_inflation_recover(void)
 
 				id->value_sell = id->value_buy / 2;
 			}
-			printf("id=%d , buy_sell = %d\n",id->nameid,id->buy_sell);
+			//printf("id=%d , buy_sell = %d\n",id->nameid,id->buy_sell);
 		}
 	}
 }
