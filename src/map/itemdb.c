@@ -1446,7 +1446,7 @@ double itemdb_inflation_arithmetic_progression(int nameid, int amount, int buyor
 			int interval = up_inflation - buy_sell;
 			inflation_ap = (double)origin_price * base_inflation * (double)(interval - 1) * (double)interval / 2.0;
 			inflation_ap += (double)origin_price * base_inflation * (double)(interval - 1) * (double)(amount - interval);
-			printf("Interval=%d\n",interval);
+			//printf("Interval=%d\n",interval);
 		}
 	}
 	else
@@ -1460,13 +1460,13 @@ double itemdb_inflation_arithmetic_progression(int nameid, int amount, int buyor
 			int interval = abs(buy_sell - low_inflation);
 			inflation_ap = (double)origin_price * base_inflation * (double)(interval - 1) * (double)interval / 2.0;
 			inflation_ap += (double)origin_price * base_inflation * (double)(interval - 1) * (double)(amount - interval);
-			printf("Interval=%d\n",interval);
+			//printf("Interval=%d\n",interval);
 		}
 
 		inflation_ap = inflation_ap / 2.0;
 	}
 
-	printf("Inflation_ap=%f\n",inflation_ap);
+	//printf("Inflation_ap=%f\n",inflation_ap);
 
 	if((inflation_ap - (double)((int)inflation_ap)) >= 0.5)
 		inflation_ap += 1.0;
