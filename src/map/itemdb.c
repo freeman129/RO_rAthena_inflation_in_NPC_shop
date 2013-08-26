@@ -1429,41 +1429,45 @@ static void itemdb_read(void) {
 double itemdb_inflation_arithmetic_progression(int nameid, int amount, int buyorsell)
 {
 	int inflation = itemdb_inflation(nameid);
-	double base_inflation = 1.0 / (double)inflation;
 	int origin_price = itemdb_origin_value_buy(nameid);
 
 	int buy_sell = itemdb_buy_sell(nameid);
 	double inflation_ap = 0.0;
 
-	if(buyorsell)
+	if(inflation != 0)
 	{
-		int up_inflation = inflation * INFLATION_LIMIT_INCREASE;
-
-		if(up_inflation >= (buy_sell + amount))
-			inflation_ap = (double)origin_price * base_inflation * (double)(amount - 1) * (double)amount / 2.0;
-		else if(up_inflation > buy_sell)
+		double base_inflation = 1.0 / (double)inflation;
+		if(buyorsell)
 		{
-			int interval = up_inflation - buy_sell;
-			inflation_ap = (double)origin_price * base_inflation * (double)(interval - 1) * (double)interval / 2.0;
-			inflation_ap += (double)origin_price * base_inflation * (double)(interval - 1) * (double)(amount - interval);
-			//printf("Interval=%d\n",interval);
-		}
-	}
-	else
-	{
-		int low_inflation = inflation * INFLATION_LIMIT_DECREASE;
+		
+			int up_inflation = inflation * INFLATION_LIMIT_INCREASE;
 
-		if(low_inflation <= (buy_sell - amount))
-			inflation_ap = (double)origin_price * base_inflation * (double)(amount - 1) * (double)amount / 2.0;
-		else if(low_inflation < buy_sell)
+			if(up_inflation >= (buy_sell + amount))
+				inflation_ap = (double)origin_price * base_inflation * (double)(amount - 1) * (double)amount / 2.0;
+			else if(up_inflation > buy_sell)
+			{
+				int interval = up_inflation - buy_sell;
+				inflation_ap = (double)origin_price * base_inflation * (double)(interval - 1) * (double)interval / 2.0;
+				inflation_ap += (double)origin_price * base_inflation * (double)(interval - 1) * (double)(amount - interval);
+				//printf("Interval=%d\n",interval);
+			}
+		}
+		else
 		{
-			int interval = abs(buy_sell - low_inflation);
-			inflation_ap = (double)origin_price * base_inflation * (double)(interval - 1) * (double)interval / 2.0;
-			inflation_ap += (double)origin_price * base_inflation * (double)(interval - 1) * (double)(amount - interval);
-			//printf("Interval=%d\n",interval);
-		}
+			int low_inflation = inflation * INFLATION_LIMIT_DECREASE;
 
-		inflation_ap = inflation_ap / 2.0;
+			if(low_inflation <= (buy_sell - amount))
+				inflation_ap = (double)origin_price * base_inflation * (double)(amount - 1) * (double)amount / 2.0;
+			else if(low_inflation < buy_sell)
+			{
+				int interval = abs(buy_sell - low_inflation);
+				inflation_ap = (double)origin_price * base_inflation * (double)(interval - 1) * (double)interval / 2.0;
+				inflation_ap += (double)origin_price * base_inflation * (double)(interval - 1) * (double)(amount - interval);
+				//printf("Interval=%d\n",interval);
+			}
+
+			inflation_ap = inflation_ap / 2.0;
+		}
 	}
 
 	//printf("Inflation_ap=%f\n",inflation_ap);
@@ -1494,15 +1498,17 @@ int itemdb_inflation_update(unsigned short* item_list, int n, int buyorsell)
 			int old_buy_sell = id->buy_sell;
 			int up_inflation = id->inflation * INFLATION_LIMIT_INCREASE;
 
-			if((id->buy_sell + amount) <= up_inflation)
-				id->buy_sell = id->buy_sell + amount;
-			else 
-				id->buy_sell = up_inflation;
+			if(id->inflation != 0)
+			{ 
+				if((id->buy_sell + amount) <= up_inflation)
+					id->buy_sell = id->buy_sell + amount;
+				else 
+					id->buy_sell = up_inflation;
 
-			id->value_buy += (double)id->origin_value_buy * (double)(id->buy_sell - old_buy_sell) / (double)id->inflation;
+				id->value_buy += (double)id->origin_value_buy * (double)(id->buy_sell - old_buy_sell) / (double)id->inflation;
 
-			id->value_sell = id->value_buy / 2;
-
+				id->value_sell = id->value_buy / 2;
+			}
 			//printf("Item_id:%d's price change to %f(value_buy).\n",nameid,id->value_buy);
 		}
 	}
@@ -1517,15 +1523,17 @@ int itemdb_inflation_update(unsigned short* item_list, int n, int buyorsell)
 			int old_buy_sell = id->buy_sell;
 			int low_inflation = id->inflation * INFLATION_LIMIT_DECREASE;
 
-			if((id->buy_sell - amount) >= low_inflation)
-				id->buy_sell = id->buy_sell - amount;
-			else
-				id->buy_sell = low_inflation;
+			if(id->inflation != 0)
+			{ 
+				if((id->buy_sell - amount) >= low_inflation)
+					id->buy_sell = id->buy_sell - amount;
+				else
+					id->buy_sell = low_inflation;
 
-			id->value_buy += (double)id->origin_value_buy * (double)(id->buy_sell - old_buy_sell) / (double)id->inflation;
+				id->value_buy += (double)id->origin_value_buy * (double)(id->buy_sell - old_buy_sell) / (double)id->inflation;
 
-			id->value_sell = id->value_buy / 2;
-
+				id->value_sell = id->value_buy / 2;
+			}
 			//printf("Item_id:%d's price change to %f(value_buy).\n",nameid,id->value_buy);
 		}
 	}
@@ -1590,27 +1598,30 @@ void itemdb_inflation_recover(void)
 			recover_number = (int)(INFLATION_RECOVER * id->inflation);
 			old_buy_sell = id->buy_sell;
 
-			if(id->buy_sell > 0)
+			if(id->inflation != 0)
 			{
-				if(id->buy_sell >= recover_number)
-					id->buy_sell -= recover_number;
+				if(id->buy_sell > 0)
+				{
+					if(id->buy_sell >= recover_number)
+						id->buy_sell -= recover_number;
+					else
+						id->buy_sell = 0;
+
+					id->value_buy += (double)id->origin_value_buy * (double)(id->buy_sell - old_buy_sell) / (double)id->inflation;
+
+					id->value_sell = id->value_buy / 2;
+				}
 				else
-					id->buy_sell = 0;
+				{
+					if(id->buy_sell <= (0 - recover_number))
+						id->buy_sell += recover_number;
+					else
+						id->buy_sell = 0;
 
-				id->value_buy += (double)id->origin_value_buy * (double)(id->buy_sell - old_buy_sell) / (double)id->inflation;
+					id->value_buy += (double)id->origin_value_buy * (double)(id->buy_sell - old_buy_sell) / (double)id->inflation;
 
-				id->value_sell = id->value_buy / 2;
-			}
-			else
-			{
-				if(id->buy_sell <= (0 - recover_number))
-					id->buy_sell += recover_number;
-				else
-					id->buy_sell = 0;
-
-				id->value_buy += (double)id->origin_value_buy * (double)(id->buy_sell - old_buy_sell) / (double)id->inflation;
-
-				id->value_sell = id->value_buy / 2;
+					id->value_sell = id->value_buy / 2;
+				}
 			}
 			//printf("id=%d , buy_sell = %d\n",id->nameid,id->buy_sell);
 		}
